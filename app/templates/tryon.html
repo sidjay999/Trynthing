@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Try On — {{ garment.name }} | TryOnAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #e8e8ed;
+            min-height: 100vh;
+        }
+
+        nav {
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            text-align: center;
+        }
+        nav a { color: #a5b4fc; text-decoration: none; font-weight: 600; font-size: 1.1rem; }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .tryon-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .tryon-header h1 {
+            font-size: 1.6rem;
+            margin-bottom: 0.5rem;
+            color: #e8e8ed;
+        }
+        .tryon-header p {
+            color: #9ca3af;
+            font-size: 0.95rem;
+        }
+
+        .privacy-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            background: rgba(16,185,129,0.1);
+            border: 1px solid rgba(16,185,129,0.2);
+            border-radius: 100px;
+            color: #6ee7b7;
+            font-size: 0.8rem;
+            font-weight: 500;
+            margin-top: 1rem;
+        }
+
+        /* ── Two Column ── */
+        .tryon-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+            margin-bottom: 2rem;
+        }
+
+        @media (max-width: 700px) {
+            .tryon-grid { grid-template-columns: 1fr; }
+        }
+
+        .panel {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 1rem 1.2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #9ca3af;
+        }
+
+        .panel-body {
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 300px;
+        }
+
+        .garment-preview {
+            width: 100%;
+            max-height: 350px;
+            object-fit: contain;
+            border-radius: 8px;
+        }
+
+        /* ── Upload Area ── */
+        .upload-area {
+            width: 100%;
+            min-height: 250px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 2px dashed rgba(99,102,241,0.3);
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-align: center;
+            padding: 1.5rem;
+        }
+        .upload-area:hover, .upload-area.dragover {
+            border-color: #6366f1;
+            background: rgba(99,102,241,0.05);
+        }
+
+        .upload-area .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
+        .upload-area p { color: #9ca3af; font-size: 0.9rem; }
+
+        .person-preview {
+            width: 100%;
+            max-height: 350px;
+            object-fit: contain;
+            border-radius: 8px;
+            display: none;
+        }
+
+        input[type="file"] { display: none; }
+
+        /* ── Generate Button ── */
+        .generate-btn {
+            width: 100%;
+            padding: 16px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white;
+            font-size: 1.1rem;
+            font-weight: 700;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-bottom: 1rem;
+        }
+        .generate-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(99,102,241,0.4);
+        }
+        .generate-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        /* ── Result ── */
+        .result-section {
+            display: none;
+            text-align: center;
+        }
+        .result-section.visible { display: block; }
+
+        .result-image {
+            width: 100%;
+            max-width: 400px;
+            border-radius: 16px;
+            margin: 0 auto 1rem;
+            border: 2px solid rgba(99,102,241,0.3);
+        }
+
+        .result-meta {
+            color: #6b7280;
+            font-size: 0.85rem;
+            margin-bottom: 1rem;
+        }
+
+        .download-btn {
+            padding: 10px 24px;
+            border-radius: 10px;
+            background: rgba(16,185,129,0.15);
+            color: #6ee7b7;
+            border: 1px solid rgba(16,185,129,0.2);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+        }
+        .download-btn:hover { background: rgba(16,185,129,0.25); }
+
+        /* ── Loading ── */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 2rem;
+        }
+        .loading.visible { display: block; }
+
+        .spinner {
+            width: 48px; height: 48px;
+            border: 4px solid rgba(99,102,241,0.2);
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1rem;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .loading p { color: #9ca3af; }
+        .loading .timer { color: #a5b4fc; font-weight: 600; font-size: 1.2rem; }
+
+        footer {
+            text-align: center;
+            padding: 2rem;
+            color: #4b5563;
+            font-size: 0.8rem;
+        }
+    </style>
+</head>
+<body>
+    <nav><a href="/">TryOnAI</a></nav>
+
+    <div class="container">
+        <div class="tryon-header">
+            <h1>Try On: {{ garment.name }}</h1>
+            <p>Upload your photo to see how this garment looks on you</p>
+            <div class="privacy-badge">🔒 Your photo is never stored — processed in-memory only</div>
+        </div>
+
+        <div class="tryon-grid">
+            <!-- Garment Panel -->
+            <div class="panel">
+                <div class="panel-header">Garment</div>
+                <div class="panel-body">
+                    <img class="garment-preview" src="/api/garment/image/{{ garment_id }}" alt="{{ garment.name }}">
+                </div>
+            </div>
+
+            <!-- Person Upload Panel -->
+            <div class="panel">
+                <div class="panel-header">Your Photo</div>
+                <div class="panel-body">
+                    <div class="upload-area" id="uploadArea" onclick="document.getElementById('photoInput').click()">
+                        <div class="icon">📷</div>
+                        <p>Tap to upload your photo<br><small>Front-facing, full/half body</small></p>
+                    </div>
+                    <img class="person-preview" id="personPreview" alt="Your photo">
+                    <input type="file" id="photoInput" accept="image/*" capture="user">
+                </div>
+            </div>
+        </div>
+
+        <button class="generate-btn" id="generateBtn" disabled onclick="generate()">
+            ✨ Generate Try-On
+        </button>
+
+        <!-- Loading -->
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>AI is dressing you up...</p>
+            <div class="timer" id="timer">0.0s</div>
+        </div>
+
+        <!-- Result -->
+        <div class="result-section" id="resultSection">
+            <h2 style="margin-bottom: 1rem;">Your Try-On Result</h2>
+            <img class="result-image" id="resultImage" alt="Try-on result">
+            <div class="result-meta" id="resultMeta"></div>
+            <a class="download-btn" id="downloadBtn" download="tryon_result.png">⬇ Download Result</a>
+        </div>
+    </div>
+
+    <footer>TryOnAI — Your photo is processed in-memory and never saved to our servers.</footer>
+
+    <script>
+        const photoInput = document.getElementById('photoInput');
+        const personPreview = document.getElementById('personPreview');
+        const uploadArea = document.getElementById('uploadArea');
+        const generateBtn = document.getElementById('generateBtn');
+        const garmentId = '{{ garment_id }}';
+        let selectedFile = null;
+
+        // Photo selection
+        photoInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                selectedFile = this.files[0];
+                const reader = new FileReader();
+                reader.onload = e => {
+                    personPreview.src = e.target.result;
+                    personPreview.style.display = 'block';
+                    uploadArea.style.display = 'none';
+                    generateBtn.disabled = false;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Drag & drop
+        uploadArea.addEventListener('dragover', e => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => uploadArea.classList.remove('dragover'));
+        uploadArea.addEventListener('drop', e => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) {
+                photoInput.files = e.dataTransfer.files;
+                photoInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Generate
+        async function generate() {
+            if (!selectedFile) return;
+
+            generateBtn.disabled = true;
+            generateBtn.textContent = 'Processing...';
+            document.getElementById('loading').classList.add('visible');
+            document.getElementById('resultSection').classList.remove('visible');
+
+            // Timer
+            const startTime = Date.now();
+            const timerEl = document.getElementById('timer');
+            const timerInterval = setInterval(() => {
+                timerEl.textContent = ((Date.now() - startTime) / 1000).toFixed(1) + 's';
+            }, 100);
+
+            try {
+                const formData = new FormData();
+                formData.append('file', selectedFile);
+                formData.append('seed', Math.floor(Math.random() * 10000));
+
+                const response = await fetch(`/api/tryon/${garmentId}`, {
+                    method: 'POST',
+                    body: formData,
+                });
+
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Try-on failed');
+                }
+
+                const blob = await response.blob();
+                const url = URL.createObjectURL(blob);
+                const inferenceTime = response.headers.get('X-Inference-Time') || '?';
+
+                document.getElementById('resultImage').src = url;
+                document.getElementById('downloadBtn').href = url;
+                document.getElementById('resultMeta').textContent = `Generated in ${inferenceTime}`;
+                document.getElementById('resultSection').classList.add('visible');
+
+            } catch (err) {
+                alert('Try-on failed: ' + err.message);
+            }
+
+            clearInterval(timerInterval);
+            document.getElementById('loading').classList.remove('visible');
+            generateBtn.disabled = false;
+            generateBtn.textContent = '✨ Generate Try-On';
+        }
+    </script>
+</body>
+</html>

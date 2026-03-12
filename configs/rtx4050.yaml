@@ -1,0 +1,27 @@
+# RTX 4050 6GB — Memory-Optimized Settings for CatVTON
+device: "cuda"
+precision: "fp16"              # NOT bf16 (needs 8GB+)
+
+resolution:
+  width: 384
+  height: 512
+
+inference:
+  num_steps: 30                # fewer steps = less VRAM peak
+  guidance_scale: 2.5
+  seed: 42
+  batch_size: 1                # never batch on 6GB
+
+optimizations:
+  xformers: true               # memory-efficient attention
+  cpu_offload: false            # enable only if OOM
+  sequential_cpu_offload: false
+  vae_slicing: true             # process VAE in slices
+  vae_tiling: true              # tile large images
+
+# CatVTON specific
+catvton:
+  model_id: "zhengchong/CatVTON"
+  base_model: "runwayml/stable-diffusion-inpainting"
+  mask_type: "upper"           # upper | lower | overall
+  repaint: true                # repaint unmasked region

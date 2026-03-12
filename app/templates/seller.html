@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seller Dashboard — TryOnAI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: #0a0a0f;
+            color: #e8e8ed;
+            min-height: 100vh;
+        }
+
+        /* ── Nav ── */
+        nav {
+            display: flex; justify-content: space-between; align-items: center;
+            padding: 1rem 2rem;
+            border-bottom: 1px solid rgba(255,255,255,0.06);
+        }
+        nav a { color: #a5b4fc; text-decoration: none; font-weight: 600; font-size: 1.1rem; }
+        nav .nav-links a { color: #9ca3af; font-weight: 400; font-size: 0.95rem; margin-left: 1.5rem; }
+        nav .nav-links a:hover { color: #e8e8ed; }
+
+        /* ── Main Layout ── */
+        .container { max-width: 1200px; margin: 0 auto; padding: 2rem; }
+
+        h1 { font-size: 1.8rem; margin-bottom: 0.5rem; }
+        .subtitle { color: #9ca3af; margin-bottom: 2rem; }
+
+        /* ── Upload Section ── */
+        .upload-section {
+            background: rgba(255,255,255,0.03);
+            border: 2px dashed rgba(99,102,241,0.3);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            text-align: center;
+            transition: all 0.3s;
+        }
+        .upload-section:hover {
+            border-color: rgba(99,102,241,0.5);
+            background: rgba(99,102,241,0.05);
+        }
+        .upload-section.dragover {
+            border-color: #6366f1;
+            background: rgba(99,102,241,0.1);
+        }
+
+        .upload-icon { font-size: 3rem; margin-bottom: 1rem; }
+        .upload-section p { color: #9ca3af; margin-bottom: 1rem; }
+
+        .upload-form { display: flex; flex-direction: column; align-items: center; gap: 1rem; }
+        .upload-form input[type="file"] { display: none; }
+
+        .file-label {
+            display: inline-block;
+            padding: 10px 24px;
+            background: linear-gradient(135deg, #6366f1, #8b5cf6);
+            color: white; border-radius: 10px;
+            cursor: pointer; font-weight: 600;
+            transition: all 0.3s;
+        }
+        .file-label:hover { transform: translateY(-2px); box-shadow: 0 4px 20px rgba(99,102,241,0.3); }
+
+        .form-row {
+            display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; justify-content: center;
+        }
+        .form-row input, .form-row select {
+            padding: 10px 16px; border-radius: 10px;
+            background: rgba(255,255,255,0.06);
+            border: 1px solid rgba(255,255,255,0.1);
+            color: #e8e8ed; font-family: inherit; font-size: 0.95rem;
+        }
+        .form-row select option { background: #1a1a2e; }
+
+        .btn-upload {
+            padding: 12px 32px; border-radius: 10px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; font-weight: 600; border: none;
+            cursor: pointer; font-size: 1rem;
+            transition: all 0.3s;
+        }
+        .btn-upload:hover { transform: translateY(-2px); }
+        .btn-upload:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .preview-image {
+            max-width: 200px; max-height: 200px;
+            border-radius: 12px; margin-top: 1rem;
+            display: none;
+        }
+
+        /* ── Garment Grid ── */
+        .garments-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.5rem;
+        }
+        .garments-header h2 { font-size: 1.4rem; }
+        .garment-count {
+            background: rgba(99,102,241,0.15);
+            color: #a5b4fc; padding: 4px 12px;
+            border-radius: 100px; font-size: 0.85rem;
+        }
+
+        .garment-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .garment-card {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.06);
+            border-radius: 16px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        .garment-card:hover {
+            border-color: rgba(99,102,241,0.3);
+            transform: translateY(-4px);
+            box-shadow: 0 8px 30px rgba(0,0,0,0.3);
+        }
+
+        .garment-image {
+            width: 100%; height: 240px;
+            object-fit: cover;
+            background: #1a1a2e;
+        }
+
+        .garment-info { padding: 1.2rem; }
+        .garment-info h3 { font-size: 1rem; margin-bottom: 0.3rem; }
+        .garment-meta { color: #6b7280; font-size: 0.85rem; margin-bottom: 1rem; }
+
+        .garment-actions { display: flex; gap: 0.5rem; flex-wrap: wrap; }
+        .garment-actions button, .garment-actions a {
+            padding: 8px 14px; border-radius: 8px; font-size: 0.85rem;
+            font-weight: 500; cursor: pointer; text-decoration: none;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.2s;
+        }
+        .btn-qr { background: rgba(99,102,241,0.15); color: #a5b4fc; border: none; }
+        .btn-qr:hover { background: rgba(99,102,241,0.25); }
+        .btn-link { background: rgba(16,185,129,0.15); color: #6ee7b7; border: none; }
+        .btn-link:hover { background: rgba(16,185,129,0.25); }
+        .btn-delete { background: rgba(239,68,68,0.1); color: #fca5a5; border: none; }
+        .btn-delete:hover { background: rgba(239,68,68,0.2); }
+
+        /* ── QR Modal ── */
+        .modal-overlay {
+            display: none; position: fixed; inset: 0;
+            background: rgba(0,0,0,0.7); z-index: 100;
+            justify-content: center; align-items: center;
+        }
+        .modal-overlay.active { display: flex; }
+        .modal {
+            background: #1a1a2e; border-radius: 20px; padding: 2rem;
+            max-width: 400px; width: 90%; text-align: center;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        .modal h3 { margin-bottom: 1rem; }
+        .modal img { border-radius: 12px; margin-bottom: 1rem; background: white; padding: 0.5rem; }
+        .modal .link-box {
+            background: rgba(255,255,255,0.06); padding: 10px;
+            border-radius: 8px; font-size: 0.85rem; color: #a5b4fc;
+            word-break: break-all; margin-bottom: 1rem;
+        }
+        .modal .btn-close {
+            padding: 8px 20px; border-radius: 8px;
+            background: rgba(255,255,255,0.1); color: #e8e8ed;
+            border: none; cursor: pointer; font-weight: 500;
+        }
+
+        .empty-state {
+            text-align: center; padding: 4rem 2rem;
+            color: #6b7280;
+        }
+        .empty-state .icon { font-size: 4rem; margin-bottom: 1rem; }
+
+        .toast {
+            position: fixed; bottom: 2rem; right: 2rem;
+            padding: 12px 20px; border-radius: 10px;
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white; font-weight: 500; z-index: 200;
+            transform: translateY(100px); opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="/">TryOnAI</a>
+        <div class="nav-links">
+            <a href="/">Home</a>
+            <a href="/seller">Dashboard</a>
+        </div>
+    </nav>
+
+    <div class="container">
+        <h1>Seller Dashboard</h1>
+        <p class="subtitle">Upload garments, generate QR codes, share with customers</p>
+
+        <!-- Upload -->
+        <div class="upload-section" id="dropZone">
+            <div class="upload-icon">👗</div>
+            <p>Drag & drop a garment image, or click to browse</p>
+            <form class="upload-form" id="uploadForm">
+                <input type="file" id="fileInput" accept="image/*">
+                <label for="fileInput" class="file-label">Choose Image</label>
+                <img id="previewImg" class="preview-image" alt="Preview">
+                <div class="form-row">
+                    <input type="text" id="garmentName" placeholder="Garment name (optional)">
+                    <select id="clothType">
+                        <option value="upper">Upper body (shirt, top)</option>
+                        <option value="lower">Lower body (pants, skirt)</option>
+                        <option value="overall">Full body (dress, saree)</option>
+                    </select>
+                    <button type="submit" class="btn-upload" id="uploadBtn" disabled>Upload & Generate QR</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- Garments -->
+        <div class="garments-header">
+            <h2>Your Garments</h2>
+            <span class="garment-count" id="garmentCount">{{ garments|length }} items</span>
+        </div>
+
+        <div class="garment-grid" id="garmentGrid">
+            {% if garments %}
+                {% for g in garments %}
+                <div class="garment-card" id="card-{{ g.garment_id }}">
+                    <img class="garment-image" src="/api/garment/image/{{ g.garment_id }}" alt="{{ g.name }}">
+                    <div class="garment-info">
+                        <h3>{{ g.name }}</h3>
+                        <div class="garment-meta">{{ g.cloth_type }} &bull; {{ g.created_at }}</div>
+                        <div class="garment-actions">
+                            <button class="btn-qr" onclick="showQR('{{ g.garment_id }}', '{{ g.name }}')">📱 QR Code</button>
+                            <a class="btn-link" href="/tryon/{{ g.garment_id }}" target="_blank">🔗 Try-On Link</a>
+                            <button class="btn-delete" onclick="deleteGarment('{{ g.garment_id }}')">🗑 Delete</button>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            {% else %}
+                <div class="empty-state">
+                    <div class="icon">📦</div>
+                    <p>No garments yet. Upload your first product above!</p>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- QR Modal -->
+    <div class="modal-overlay" id="qrModal">
+        <div class="modal">
+            <h3 id="qrTitle">QR Code</h3>
+            <img id="qrImage" width="200" height="200" alt="QR Code">
+            <div class="link-box" id="qrLink"></div>
+            <button class="btn-close" onclick="closeQR()">Close</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const previewImg = document.getElementById('previewImg');
+        const uploadBtn = document.getElementById('uploadBtn');
+        const uploadForm = document.getElementById('uploadForm');
+
+        // File preview
+        fileInput.addEventListener('change', function() {
+            if (this.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    previewImg.src = e.target.result;
+                    previewImg.style.display = 'block';
+                    uploadBtn.disabled = false;
+                };
+                reader.readAsDataURL(this.files[0]);
+            }
+        });
+
+        // Drag & drop
+        dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+        dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+        dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            if (e.dataTransfer.files[0]) {
+                fileInput.files = e.dataTransfer.files;
+                fileInput.dispatchEvent(new Event('change'));
+            }
+        });
+
+        // Upload
+        uploadForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!fileInput.files[0]) return;
+
+            uploadBtn.disabled = true;
+            uploadBtn.textContent = 'Uploading...';
+
+            const formData = new FormData();
+            formData.append('file', fileInput.files[0]);
+            formData.append('name', document.getElementById('garmentName').value);
+            formData.append('cloth_type', document.getElementById('clothType').value);
+
+            try {
+                const res = await fetch('/api/seller/upload', { method: 'POST', body: formData });
+                const data = await res.json();
+                showToast(`Uploaded! QR ready for "${data.name}"`);
+                setTimeout(() => location.reload(), 1000);
+            } catch (err) {
+                showToast('Upload failed: ' + err.message);
+            }
+
+            uploadBtn.disabled = false;
+            uploadBtn.textContent = 'Upload & Generate QR';
+        });
+
+        // QR Modal
+        function showQR(id, name) {
+            document.getElementById('qrTitle').textContent = name;
+            document.getElementById('qrImage').src = `/api/seller/qr/${id}`;
+            document.getElementById('qrLink').textContent = `${location.origin}/tryon/${id}`;
+            document.getElementById('qrModal').classList.add('active');
+        }
+        function closeQR() {
+            document.getElementById('qrModal').classList.remove('active');
+        }
+
+        // Delete
+        async function deleteGarment(id) {
+            if (!confirm('Delete this garment?')) return;
+            await fetch(`/api/seller/garments/${id}`, { method: 'DELETE' });
+            document.getElementById(`card-${id}`).remove();
+            showToast('Garment deleted');
+        }
+
+        // Toast
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(() => toast.classList.remove('show'), 3000);
+        }
+    </script>
+</body>
+</html>

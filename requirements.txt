@@ -1,0 +1,43 @@
+# === Exact compatible versions (tested on RTX 4050 / WSL2 Ubuntu) ===
+# Install ORDER matters — follow the sequence below
+
+# --- Step 1: PyTorch + CUDA ---
+# pip install torch torchvision --index-url https://download.pytorch.org/whl/cu121
+
+# --- Step 2: DensePose (Linux/WSL only) ---
+# pip install 'git+https://github.com/facebookresearch/fvcore.git'
+# pip install 'git+https://github.com/facebookresearch/detectron2.git'
+
+# --- Step 3: Pin huggingface_hub FIRST (critical — prevents version conflicts) ---
+huggingface_hub==0.25.2
+
+# --- Step 4: Core ML stack (must match huggingface_hub 0.25.2) ---
+diffusers==0.27.2
+transformers==4.44.2
+accelerate==1.10.1
+
+# --- Step 5: Numerical & Vision ---
+numpy==1.26.4
+scipy>=1.13.0
+opencv-python-headless>=4.8.0
+mediapipe>=0.10.0
+Pillow>=10.0.0
+
+# --- Step 6: Training ---
+peft>=0.7.0
+datasets>=2.14.0
+xformers
+
+# --- Step 7: Web Platform ---
+fastapi>=0.111.0
+uvicorn>=0.30.0
+python-multipart>=0.0.9
+qrcode[pil]>=7.4
+aiofiles>=23.0
+jinja2>=3.1.0
+
+# --- Step 8: DensePose video support ---
+av>=12.0.0
+
+# --- Step 9: Config ---
+pyyaml>=6.0

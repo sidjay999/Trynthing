@@ -1,0 +1,53 @@
+# ===== Python =====
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ===== Model Weights (downloaded at runtime) =====
+models/
+*.pth
+*.pkl
+*.safetensors
+*.ckpt
+*.bin
+
+# ===== Data & User Content =====
+data/garment_store/
+data/output/
+data/train/
+data/val/
+data/test_mask.png
+
+# ===== Environment =====
+.env
+*.env
+venv/
+.venv/
+
+# ===== IDE =====
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ===== OS =====
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ===== Temp/Debug =====
+densepose_/
+scripts/wsl_test.py
+scripts/wsl_diag.py
+scripts/test_mask.py
+*.log
+
+# ===== Git submodule artifacts =====
+CatVTON/.git/
+CatVTON/__pycache__/
+CatVTON/detectron2/
