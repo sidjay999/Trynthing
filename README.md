@@ -158,30 +158,37 @@ PYTHONPATH=CatVTON:. python scripts/train_lora.py \
     --learning_rate 1e-4
 ```
 
-## 🌐 Deployment
+## 🌐 Deployment (ngrok — Self-Hosted)
 
-### Cloud GPU Options
+Run the platform on your own GPU and expose it publicly with ngrok:
 
-| Platform | GPU | Cost | Setup |
-|---|---|---|---|
-| **RunPod** | A40/A100 | ~$0.5/hr | Docker container |
-| **Modal** | T4/A10G | Pay-per-use | Python decorator |
-| **HuggingFace Spaces** | T4 | Free tier | Gradio/Docker |
-| **AWS EC2** | g5.xlarge | ~$1/hr | Full control |
-| **Google Cloud Run** | L4 | ~$0.7/hr | Container-based |
+### 1. Install ngrok
 
-### Docker Deployment
+```bash
+# Linux/WSL
+curl -sSL https://ngrok-agent.s3.amazonaws.com/ngrok-v3-stable-linux-amd64.tgz | tar xz
+sudo mv ngrok /usr/local/bin/
 
-```dockerfile
-FROM nvidia/cuda:12.1.0-runtime-ubuntu22.04
-RUN apt-get update && apt-get install -y python3.9 python3-pip git
-COPY . /app
-WORKDIR /app
-RUN pip install -r requirements.txt
-RUN pip install 'git+https://github.com/facebookresearch/fvcore.git'
-RUN pip install 'git+https://github.com/facebookresearch/detectron2.git'
-CMD ["python3", "-m", "uvicorn", "app.api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+# Sign up at https://ngrok.com (free) and add your auth token:
+ngrok config add-authtoken YOUR_TOKEN
 ```
+
+### 2. Start the server
+
+```bash
+# Terminal 1 — Start the try-on server
+cd /mnt/c/Users/JAY/OneDrive/Desktop/trynthing
+PYTHONPATH=CatVTON:. ~/miniconda3/bin/python -m uvicorn app.api.server:app --host 0.0.0.0 --port 8000
+```
+
+### 3. Expose publicly
+
+```bash
+# Terminal 2 — Get a public URL
+ngrok http 8000
+```
+
+ngrok will show a public URL like `https://abc123.ngrok-free.app` — share this with anyone to try on garments.
 
 ## 📊 Performance
 
