@@ -38,15 +38,16 @@ def parse_args():
     parser.add_argument("--mask", type=str, default=None, help="Path to cloth-agnostic mask (white=replace region). Auto-generated if not provided.")
     parser.add_argument("--output", type=str, default=None, help="Output path (default: data/output/result_<timestamp>.png)")
     parser.add_argument("--cloth_type", type=str, default="upper", choices=["upper", "lower", "overall"], help="Garment type for auto-masking")
-    parser.add_argument("--steps", type=int, default=30, help="Inference steps (default: 30)")
+    parser.add_argument("--steps", type=int, default=50, help="Inference steps (default: 50)")
     parser.add_argument("--guidance", type=float, default=2.5, help="CFG guidance scale (default: 2.5)")
     parser.add_argument("--seed", type=int, default=42, help="Random seed (-1 for random)")
-    parser.add_argument("--width", type=int, default=384, help="Output width (default: 384 for 6GB VRAM)")
-    parser.add_argument("--height", type=int, default=512, help="Output height (default: 512 for 6GB VRAM)")
+    parser.add_argument("--width", type=int, default=768, help="Output width")
+    parser.add_argument("--height", type=int, default=1024, help="Output height")
     parser.add_argument("--demo", action="store_true", help="Run with bundled example images")
     parser.add_argument("--no-repaint", action="store_true", help="Skip repainting unmasked region")
     parser.add_argument("--use-schp", action="store_true", default=True, help="Use SCHP human parsing for mask (default: True)")
     parser.add_argument("--no-schp", action="store_true", help="Disable SCHP, use simple geometric mask")
+    parser.add_argument("--lora-path", type=str, default=None, help="Path to LoRA checkpoint dir (e.g. checkpoints/saree/lora_epoch20/)")
     return parser.parse_args()
 
 
@@ -150,16 +151,16 @@ def load_pipeline(width, height):
     )
     print(f"      Weights at: {repo_path}")
 
-    print("[2/3] Loading pipeline (fp16 for 6GB VRAM)...")
+    print("[2/3] Loading pipeline (bf16)...")
     t0 = time.time()
     pipeline = CatVTONPipeline(
         base_ckpt="booksforcharlie/stable-diffusion-inpainting",
         attn_ckpt=repo_path,
         attn_ckpt_version="mix",
-        weight_dtype=init_weight_dtype("fp16"),
+        weight_dtype=init_weight_dtype("bf16"),
         use_tf32=True,
         device="cuda",
-        skip_safety_check=True,  # Skip NSFW check for speed
+        skip_safety_check=True,
     )
     print(f"      Pipeline loaded in {time.time()-t0:.1f}s")
 
@@ -169,6 +170,15 @@ def load_pipeline(width, height):
     print(f"      VRAM: {allocated:.0f}MB allocated, {reserved:.0f}MB reserved")
 
     return pipeline, repo_path
+
+
+def load_lora_weights(pipeline, lora_path: str):
+    """Load LoRA weights on top of the base pipeline."""
+    from peft import PeftModel
+    print(f"[LoRA] Loading weights from {lora_path}...")
+    pipeline.unet = PeftModel.from_pretrained(pipeline.unet, lora_path)
+    print("[LoRA] Weights loaded successfully")
+    return pipeline
 
 
 def run_tryon(pipeline, person_path, garment_path, mask_path, args):
