@@ -52,23 +52,29 @@ pip install peft datasets tqdm
 
 ---
 
-## Step 1 — Prepare Dataset
+## Step 1 — Transfer Dataset to Remote Machine
 
-The saree images are already in the repo at `data/saree/`.
-If masks weren't generated yet, run:
+Since we removed the images from GitHub (they are too large), you need to transfer them directly from your local laptop to the remote machine.
 
+**Option A: Transfer via SCP (Direct network transfer)**
+Run this on your *local Windows PowerShell* or *WSL*:
 ```bash
-# Generate full-body masks (uses GPU, ~10 min)
-PYTHONPATH=CatVTON:. python scripts/prepare_dataset.py masks \
-    --dataset data/saree/train/ --cloth-type overall
+# 1. First, zip the dataset on your local machine
+cd /mnt/c/Users/JAY/OneDrive/Desktop/trynthing
+tar -czf saree_dataset.tar.gz data/saree/ data/saree_raw/
 
-# Generate pairs
-PYTHONPATH=CatVTON:. python scripts/prepare_dataset.py pairs \
-    --dataset data/saree/train/ --strategy matched
+# 2. Transfer to remote machine (replace user and ip)
+scp saree_dataset.tar.gz remote_user@remote_ip:~/Trynthing/
+```
 
-# Validate
-PYTHONPATH=CatVTON:. python scripts/prepare_dataset.py validate \
-    --dataset data/saree/train/
+**Option B: Google Drive / Transfer proxy**
+If SCP doesn't work, upload `saree_dataset.tar.gz` to Google Drive, then download it on the remote machine.
+
+**Extract on Remote Machine:**
+```bash
+# Once the file is on the remote machine
+cd ~/Trynthing
+tar -xzf saree_dataset.tar.gz
 ```
 
 ---

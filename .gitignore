@@ -51,3 +51,12 @@ scripts/test_mask.py
 CatVTON/.git/
 CatVTON/__pycache__/
 CatVTON/detectron2/
+
+data/saree_raw/
+data/saree/
+data/dresscode_raw/
+data/dresscode/
+
+# ===== LoRA Checkpoints =====
+checkpoints/
+*.tar.gz

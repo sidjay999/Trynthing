@@ -65,6 +65,8 @@ class TryOnEngine:
         self.automasker = None
         self._lock = asyncio.Lock()
         self._loaded = False
+        self._lora_path = None
+        self._lora_loaded = False
     
     async def load(self):
         """Load CatVTON pipeline + AutoMasker — identical to app.py."""
@@ -132,6 +134,19 @@ class TryOnEngine:
         
         self.repo_path = repo_path
         self._loaded = True
+        
+        # Detect LoRA checkpoints for saree/overall
+        lora_v2 = PROJECT_ROOT / "checkpoints" / "saree_v2" / "lora_epoch40"
+        lora_v1 = PROJECT_ROOT / "checkpoints" / "saree" / "lora_epoch20"
+        if lora_v2.exists():
+            self._lora_path = str(lora_v2)
+            print(f"[Engine] Saree LoRA found: {self._lora_path}")
+        elif lora_v1.exists():
+            self._lora_path = str(lora_v1)
+            print(f"[Engine] Saree LoRA found: {self._lora_path}")
+        else:
+            print("[Engine] No saree LoRA checkpoints found (will use base model for overall)")
+        
         vram = torch.cuda.memory_allocated() / 1024**2
         print(f"[Engine] Ready! VRAM: {vram:.0f}MB")
     
@@ -173,56 +188,103 @@ class TryOnEngine:
         mask = mask.filter(ImageFilter.GaussianBlur(radius=max(w, h) // 40))
         return mask
         
+    def _load_lora(self):
+        """Load LoRA adapter (once) — does NOT merge into weights yet."""
+        if self._lora_loaded or not self._lora_path:
+            return
+        try:
+            from peft import PeftModel
+            print(f"[Engine] Loading saree LoRA adapter from {self._lora_path}...")
+            self.pipeline.unet = PeftModel.from_pretrained(
+                self.pipeline.unet, self._lora_path
+            )
+            self.pipeline.unet.eval()
+            self._lora_loaded = True
+            print("[Engine] Saree LoRA adapter loaded (disabled by default)")
+        except Exception as e:
+            print(f"[Engine] LoRA loading failed: {e}. Using base model.")
+    
+    def _enable_lora(self):
+        """Merge LoRA weights into base model for inference."""
+        if self._lora_loaded:
+            try:
+                self.pipeline.unet.merge_adapter()
+                print("[Engine] LoRA merged (active)")
+            except Exception as e:
+                print(f"[Engine] LoRA merge failed: {e}")
+    
+    def _disable_lora(self):
+        """Unmerge LoRA weights so base model is clean again."""
+        if self._lora_loaded:
+            try:
+                self.pipeline.unet.unmerge_adapter()
+                print("[Engine] LoRA unmerged (disabled)")
+            except Exception as e:
+                print(f"[Engine] LoRA unmerge failed: {e}")
+    
     async def try_on(self, person_image, garment_image, cloth_type="upper",
                      steps=50, guidance=2.5, seed=42):
         """
         Mirrors CatVTON app.py submit_function EXACTLY.
         Uses CatVTON's own repaint_result for clean blending.
+        For saree/overall: loads LoRA weights for better full-body results.
         """
         import torch
         from utils import resize_and_crop, resize_and_padding, repaint_result
         
         async with self._lock:
-            # app.py defaults: width=768, height=1024
-            width, height = 768, 1024
+            # Only use LoRA for explicit 'saree' selection
+            use_lora = cloth_type == "saree" and self._lora_path
+            if use_lora:
+                self._load_lora()
+                self._enable_lora()
             
-            # app.py lines 152-153
-            person_resized = resize_and_crop(person_image, (width, height))
-            garment_resized = resize_and_padding(garment_image, (width, height))
+            # Map 'saree' to 'overall' for CatVTON masking
+            mask_type = "overall" if cloth_type == "saree" else cloth_type
             
-            # app.py lines 159-163
-            mask = self._generate_mask(person_resized, cloth_type)
-            mask = self.mask_processor.blur(mask, blur_factor=9)
-            
-            gc.collect()
-            torch.cuda.empty_cache()
-            
-            # app.py lines 146-148
-            generator = None
-            if seed != -1:
-                generator = torch.Generator(device='cuda').manual_seed(seed)
-            
-            # app.py lines 167-174 — EXACT same call
-            result = self.pipeline(
-                image=person_resized,
-                condition_image=garment_resized,
-                mask=mask,
-                num_inference_steps=steps,
-                guidance_scale=guidance,
-                height=height,
-                width=width,
-                generator=generator,
-            )[0]
-            
-            # Use CatVTON's own repaint_result (utils.py:171-178)
-            # Blends result into original person image using the mask.
-            # Preserves face, hands, background with pixel-perfect fidelity.
-            result = repaint_result(result, person_resized, mask)
-            
-            gc.collect()
-            torch.cuda.empty_cache()
-            
-            return result
+            try:
+                # app.py defaults: width=768, height=1024
+                width, height = 768, 1024
+                
+                # app.py lines 152-153
+                person_resized = resize_and_crop(person_image, (width, height))
+                garment_resized = resize_and_padding(garment_image, (width, height))
+                
+                # app.py lines 159-163
+                mask = self._generate_mask(person_resized, mask_type)
+                mask = self.mask_processor.blur(mask, blur_factor=9)
+                
+                gc.collect()
+                torch.cuda.empty_cache()
+                
+                # app.py lines 146-148
+                generator = None
+                if seed != -1:
+                    generator = torch.Generator(device='cuda').manual_seed(seed)
+                
+                # app.py lines 167-174 — EXACT same call
+                result = self.pipeline(
+                    image=person_resized,
+                    condition_image=garment_resized,
+                    mask=mask,
+                    num_inference_steps=steps,
+                    guidance_scale=guidance,
+                    height=height,
+                    width=width,
+                    generator=generator,
+                )[0]
+                
+                # Use CatVTON's own repaint_result (utils.py:171-178)
+                result = repaint_result(result, person_resized, mask)
+                
+                gc.collect()
+                torch.cuda.empty_cache()
+                
+                return result
+            finally:
+                # Always unmerge LoRA after inference to keep base model clean
+                if use_lora:
+                    self._disable_lora()
 
 
 # =====================================================================
