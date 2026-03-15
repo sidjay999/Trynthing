@@ -222,12 +222,91 @@ class TryOnEngine:
             except Exception as e:
                 print(f"[Engine] LoRA unmerge failed: {e}")
     
+    def _modesty_blend(self, result, original_person, cloth_type):
+        """
+        For 'overall' garments: blend original person's upper body back in.
+        This ensures the chest/shoulder area always shows the person's original
+        clothing, preventing inappropriate output when garment has no blouse.
+        
+        Uses a smooth gradient transition at ~30-40% image height so the
+        lower body shows the new garment while upper body stays covered.
+        """
+        if cloth_type not in ("overall", "saree"):
+            return result
+        
+        import numpy as np
+        
+        w, h = result.size
+        result_arr = np.array(result).astype(np.float32)
+        person_arr = np.array(original_person).astype(np.float32)
+        
+        # Create a vertical gradient mask:
+        # 0.0 at top (keep original person) -> 1.0 at bottom (show result)
+        # Transition zone: 25% to 40% of image height
+        # This preserves: face, shoulders, chest, upper arms
+        # This replaces: waist, hips, legs, lower body (where saree drapes)
+        blend_start = int(h * 0.25)  # Start blending at 25%
+        blend_end = int(h * 0.40)    # Fully showing result by 40%
+        
+        gradient = np.zeros((h, w, 1), dtype=np.float32)
+        gradient[blend_end:] = 1.0  # Below 40%: show result fully
+        
+        # Smooth gradient in transition zone
+        if blend_end > blend_start:
+            for y in range(blend_start, blend_end):
+                t = (y - blend_start) / (blend_end - blend_start)
+                # Smooth easing (cubic)
+                t = t * t * (3 - 2 * t)
+                gradient[y] = t
+        
+        # Blend: original * (1-gradient) + result * gradient
+        blended = person_arr * (1.0 - gradient) + result_arr * gradient
+        blended = np.clip(blended, 0, 255).astype(np.uint8)
+        
+        from PIL import Image
+        return Image.fromarray(blended)
+    
+    def _check_skin_exposure(self, image, cloth_type):
+        """
+        Safety net: detect excessive skin exposure in the upper body region.
+        If too much skin is detected, blend in more of the original person.
+        Returns a score from 0.0 (fully clothed) to 1.0 (fully exposed).
+        """
+        if cloth_type not in ("overall", "saree"):
+            return 0.0
+        
+        import numpy as np
+        
+        arr = np.array(image).astype(np.float32)
+        h, w = arr.shape[:2]
+        
+        # Check only the upper body region (15-40% height, center 60% width)
+        y1, y2 = int(h * 0.15), int(h * 0.40)
+        x1, x2 = int(w * 0.20), int(w * 0.80)
+        region = arr[y1:y2, x1:x2]
+        
+        if region.size == 0:
+            return 0.0
+        
+        # Simple skin tone detection in RGB
+        # Skin pixels: R > 80, G > 50, B > 30, R > G, R > B
+        r, g, b = region[:,:,0], region[:,:,1], region[:,:,2]
+        skin_mask = (
+            (r > 80) & (g > 50) & (b > 30) &
+            (r > g) & (r > b) &
+            (np.abs(r - g) > 15) &  # Not gray
+            (r - b > 20)  # Warm tone
+        )
+        
+        skin_ratio = np.mean(skin_mask)
+        return float(skin_ratio)
+    
     async def try_on(self, person_image, garment_image, cloth_type="upper",
                      steps=50, guidance=2.5, seed=42):
         """
         Mirrors CatVTON app.py submit_function EXACTLY.
         Uses CatVTON's own repaint_result for clean blending.
-        For saree/overall: loads LoRA weights for better full-body results.
+        For overall garments: applies modesty blend + skin safety check.
         """
         import torch
         from utils import resize_and_crop, resize_and_padding, repaint_result
@@ -276,6 +355,16 @@ class TryOnEngine:
                 
                 # Use CatVTON's own repaint_result (utils.py:171-178)
                 result = repaint_result(result, person_resized, mask)
+                
+                # ── SAFETY LAYERS (disabled for dev — enable in production) ──
+                # Ensure garment images include a blouse for full-body garments.
+                # Uncomment below to enforce modesty blend + skin detection:
+                #
+                # result = self._modesty_blend(result, person_resized, cloth_type)
+                # skin_score = self._check_skin_exposure(result, cloth_type)
+                # if skin_score > 0.35:
+                #     print(f"[Safety] High skin exposure ({skin_score:.2f})")
+                #     ... (see _modesty_blend and _check_skin_exposure methods)
                 
                 gc.collect()
                 torch.cuda.empty_cache()

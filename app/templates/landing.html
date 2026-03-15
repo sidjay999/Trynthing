@@ -3,19 +3,77 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TryOnAI — Virtual Try-On Platform</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <title>Try-N-Thing — Virtual Try-On Platform</title>
+    <meta name="description" content="Experience the future of fashion with AI-driven virtual try-on. Upload, generate, and see yourself in the extraordinary.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --base: #0A0310;
+            --glow: #3B1C5B;
+            --glow-rgb: 59, 28, 91;
+            --accent: #D8BFD8;
+            --white: #FFFFFF;
+            --muted: rgba(216, 191, 216, 0.5);
+            --card-bg: rgba(59, 28, 91, 0.12);
+            --card-border: rgba(216, 191, 216, 0.08);
+            --ease-antigravity: cubic-bezier(0.22, 1, 0.36, 1);
+            --ease-float: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Inter', -apple-system, sans-serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
-        
+
         body {
-            font-family: 'Inter', sans-serif;
-            background: #0a0a0f;
-            color: #e8e8ed;
+            font-family: var(--font-sans);
+            background: var(--base);
+            color: var(--white);
             min-height: 100vh;
             overflow-x: hidden;
         }
-        
+
+        /* ── Nav ── */
+        .nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            z-index: 100;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.5rem 3rem;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            background: rgba(10, 3, 16, 0.6);
+            border-bottom: 1px solid rgba(216, 191, 216, 0.06);
+            transition: all 0.4s var(--ease-antigravity);
+        }
+        .nav.scrolled { padding: 1rem 3rem; background: rgba(10, 3, 16, 0.9); }
+        .nav-logo {
+            font-family: var(--font-serif);
+            font-size: 1.4rem; font-weight: 600;
+            color: var(--white); text-decoration: none;
+        }
+        .nav-links { display: flex; align-items: center; gap: 2rem; }
+        .nav-links a {
+            color: var(--accent); text-decoration: none;
+            font-size: 0.9rem; font-weight: 400;
+            letter-spacing: 0.03em; transition: color 0.3s;
+        }
+        .nav-links a:hover { color: var(--white); }
+        .nav-cta {
+            padding: 10px 24px !important;
+            background: var(--white) !important;
+            color: var(--base) !important;
+            border-radius: 100px !important;
+            font-weight: 600 !important;
+            font-size: 0.85rem !important;
+            transition: all 0.3s var(--ease-antigravity) !important;
+        }
+        .nav-cta:hover {
+            transform: translateY(-2px) !important;
+            box-shadow: 0 8px 30px rgba(216, 191, 216, 0.15) !important;
+        }
+
         /* ── Hero ── */
         .hero {
             min-height: 100vh;
@@ -25,280 +83,549 @@
             justify-content: center;
             text-align: center;
             position: relative;
-            padding: 2rem;
+            padding: 6rem 2rem 4rem;
+            background: radial-gradient(circle at 50% 40%, rgba(var(--glow-rgb), 0.35) 0%, rgba(10, 3, 16, 1) 70%);
         }
-        
-        .hero::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(ellipse at 30% 50%, rgba(99, 102, 241, 0.08) 0%, transparent 50%),
-                        radial-gradient(ellipse at 70% 30%, rgba(168, 85, 247, 0.06) 0%, transparent 50%),
-                        radial-gradient(ellipse at 50% 80%, rgba(236, 72, 153, 0.04) 0%, transparent 50%);
-            animation: aurora 15s ease-in-out infinite alternate;
+        .hero-content { position: relative; z-index: 2; max-width: 820px; }
+
+        .hero-badge {
+            display: inline-block; padding: 8px 20px;
+            background: rgba(var(--glow-rgb), 0.3);
+            border: 1px solid rgba(216, 191, 216, 0.15);
+            border-radius: 100px; font-size: 0.8rem; font-weight: 500;
+            color: var(--accent); letter-spacing: 0.12em;
+            text-transform: uppercase; margin-bottom: 2.5rem;
+            opacity: 0; transform: translateY(20px);
+            animation: fadeUp 1s var(--ease-antigravity) 0.2s forwards;
         }
-        
-        @keyframes aurora {
-            0% { transform: translate(0, 0) rotate(0deg); }
-            100% { transform: translate(-5%, 3%) rotate(2deg); }
+        .hero h1 {
+            font-family: var(--font-serif); font-size: 4.5rem;
+            font-weight: 500; line-height: 1.1; margin-bottom: 2rem;
+            color: var(--white);
+            opacity: 0; transform: translateY(30px);
+            animation: fadeUp 1s var(--ease-antigravity) 0.4s forwards;
         }
-        
-        .hero-content {
-            position: relative;
-            z-index: 1;
-            max-width: 800px;
+        .hero h1 em { font-style: italic; color: var(--accent); }
+        .hero-subtitle {
+            font-size: 1.15rem; color: var(--muted);
+            max-width: 580px; margin: 0 auto 3rem;
+            line-height: 1.7; font-weight: 300;
+            opacity: 0; transform: translateY(20px);
+            animation: fadeUp 1s var(--ease-antigravity) 0.6s forwards;
         }
-        
-        .badge {
-            display: inline-block;
-            padding: 6px 16px;
-            background: rgba(99, 102, 241, 0.15);
-            border: 1px solid rgba(99, 102, 241, 0.3);
-            border-radius: 100px;
-            font-size: 0.85rem;
+        .hero-cta {
+            display: inline-flex; align-items: center; gap: 10px;
+            padding: 16px 40px; background: var(--white);
+            color: var(--base); border-radius: 100px;
+            font-size: 1rem; font-weight: 600; text-decoration: none;
+            letter-spacing: 0.02em;
+            transition: all 0.4s var(--ease-antigravity);
+            opacity: 0; transform: translateY(20px);
+            animation: fadeUp 1s var(--ease-antigravity) 0.8s forwards;
+        }
+        .hero-cta:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(216, 191, 216, 0.2);
+        }
+        .hero-cta svg { width: 16px; height: 16px; transition: transform 0.3s; }
+        .hero-cta:hover svg { transform: translateX(4px); }
+
+        /* ═══════════════════════════════════════════════
+           3D CAROUSEL — Product Categories
+           ═══════════════════════════════════════════════ */
+        .carousel-section {
+            padding: 4rem 0 6rem;
+            overflow: hidden;
+            background: radial-gradient(ellipse at 50% 50%, rgba(var(--glow-rgb), 0.12) 0%, transparent 60%);
+        }
+        .carousel-header {
+            text-align: center;
+            margin-bottom: 3rem;
+        }
+        .carousel-header h2 {
+            font-family: var(--font-serif);
+            font-size: 2.4rem;
             font-weight: 500;
-            color: #a5b4fc;
-            margin-bottom: 1.5rem;
-            letter-spacing: 0.05em;
+            margin-bottom: 0.6rem;
         }
-        
-        h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.1;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(135deg, #e8e8ed 0%, #a5b4fc 50%, #c084fc 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-        
-        .subtitle {
-            font-size: 1.2rem;
-            color: #9ca3af;
-            max-width: 600px;
-            margin: 0 auto 2.5rem;
-            line-height: 1.6;
-        }
-        
-        .cta-group {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-        
-        .btn {
-            padding: 14px 32px;
-            border-radius: 12px;
+        .carousel-header p {
+            color: var(--muted);
             font-size: 1rem;
-            font-weight: 600;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            cursor: pointer;
-            border: none;
+            font-style: italic;
+            font-family: var(--font-serif);
         }
-        
-        .btn-primary {
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-            box-shadow: 0 4px 24px rgba(99, 102, 241, 0.3);
-        }
-        
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 32px rgba(99, 102, 241, 0.4);
-        }
-        
-        .btn-secondary {
-            background: rgba(255, 255, 255, 0.06);
-            color: #e8e8ed;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .btn-secondary:hover {
-            background: rgba(255, 255, 255, 0.1);
-            transform: translateY(-2px);
-        }
-        
-        /* ── Features ── */
-        .features {
-            padding: 4rem 2rem;
-            max-width: 1100px;
-            margin: 0 auto;
-        }
-        
-        .features h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 3rem;
-            color: #e8e8ed;
-        }
-        
-        .feature-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 1.5rem;
-        }
-        
-        .feature-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.06);
-            border-radius: 16px;
-            padding: 2rem;
-            transition: all 0.3s ease;
-        }
-        
-        .feature-card:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(99, 102, 241, 0.3);
-            transform: translateY(-4px);
-        }
-        
-        .feature-icon {
-            font-size: 2rem;
-            margin-bottom: 1rem;
-        }
-        
-        .feature-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 0.5rem;
-            color: #e8e8ed;
-        }
-        
-        .feature-card p {
-            color: #9ca3af;
-            line-height: 1.5;
-            font-size: 0.95rem;
-        }
-        
-        /* ── How it Works ── */
-        .how-it-works {
-            padding: 4rem 2rem;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-        
-        .how-it-works h2 {
-            text-align: center;
-            font-size: 2rem;
-            margin-bottom: 3rem;
-        }
-        
-        .steps {
-            display: flex;
-            flex-direction: column;
-            gap: 2rem;
-        }
-        
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 1.5rem;
-            padding: 1.5rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-radius: 12px;
-            border: 1px solid rgba(255, 255, 255, 0.04);
-        }
-        
-        .step-number {
-            width: 40px;
-            height: 40px;
-            min-width: 40px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            border-radius: 10px;
+
+        /* Carousel container */
+        .carousel-viewport {
+            position: relative;
+            width: 100%;
+            height: 520px;
+            perspective: 1200px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-weight: 700;
-            font-size: 1.1rem;
         }
-        
-        .step h3 { font-size: 1.1rem; margin-bottom: 0.3rem; }
-        .step p { color: #9ca3af; font-size: 0.95rem; }
-        
-        footer {
+
+        .carousel-track {
+            position: relative;
+            width: 300px;
+            height: 440px;
+            transform-style: preserve-3d;
+            transition: transform 0.7s var(--ease-antigravity);
+        }
+
+        .carousel-card {
+            position: absolute;
+            width: 300px;
+            height: 440px;
+            border-radius: 24px;
+            overflow: hidden;
+            background: rgba(var(--glow-rgb), 0.15);
+            border: 1px solid rgba(216, 191, 216, 0.08);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+            transition: all 0.7s var(--ease-antigravity);
+            cursor: pointer;
+            backface-visibility: hidden;
+        }
+        .carousel-card img {
+            width: 100%;
+            height: 340px;
+            object-fit: cover;
+            display: block;
+            transition: transform 0.5s var(--ease-antigravity);
+        }
+        .carousel-card:hover img { transform: scale(1.03); }
+
+        .carousel-card-label {
+            padding: 1.1rem 1.4rem;
             text-align: center;
-            padding: 3rem 2rem;
-            color: #6b7280;
-            font-size: 0.85rem;
-            border-top: 1px solid rgba(255,255,255,0.05);
         }
-        
+        .carousel-card-label h3 {
+            font-family: var(--font-serif);
+            font-size: 1.05rem;
+            font-weight: 500;
+            margin-bottom: 0.2rem;
+        }
+        .carousel-card-label p {
+            font-size: 0.78rem;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        /* Card positions — computed by JS but defined here as states */
+        .carousel-card[data-pos="0"] {
+            transform: translateX(-600px) translateZ(-200px) rotateY(25deg);
+            opacity: 0.4;
+            filter: brightness(0.5);
+        }
+        .carousel-card[data-pos="1"] {
+            transform: translateX(-320px) translateZ(-100px) rotateY(15deg);
+            opacity: 0.7;
+            filter: brightness(0.7);
+        }
+        .carousel-card[data-pos="2"] {
+            transform: translateX(0) translateZ(60px) rotateY(0deg);
+            opacity: 1;
+            filter: brightness(1);
+            box-shadow: 0 16px 80px rgba(var(--glow-rgb), 0.4);
+            border-color: rgba(216, 191, 216, 0.2);
+            z-index: 10;
+        }
+        .carousel-card[data-pos="3"] {
+            transform: translateX(320px) translateZ(-100px) rotateY(-15deg);
+            opacity: 0.7;
+            filter: brightness(0.7);
+        }
+        .carousel-card[data-pos="4"] {
+            transform: translateX(600px) translateZ(-200px) rotateY(-25deg);
+            opacity: 0.4;
+            filter: brightness(0.5);
+        }
+
+        /* Active card glow ring */
+        .carousel-card[data-pos="2"]::after {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            border-radius: 26px;
+            background: linear-gradient(135deg, rgba(216,191,216,0.2), transparent 60%);
+            z-index: -1;
+        }
+
+        /* Carousel controls */
+        .carousel-controls {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 1.5rem;
+            margin-top: 2rem;
+        }
+        .carousel-btn {
+            width: 48px; height: 48px;
+            border-radius: 50%;
+            background: rgba(var(--glow-rgb), 0.3);
+            border: 1px solid rgba(216, 191, 216, 0.1);
+            color: var(--accent);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s var(--ease-antigravity);
+        }
+        .carousel-btn:hover {
+            background: rgba(var(--glow-rgb), 0.5);
+            transform: scale(1.08);
+        }
+        .carousel-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 2; }
+
+        .carousel-dots {
+            display: flex; gap: 8px;
+        }
+        .carousel-dot {
+            width: 8px; height: 8px;
+            border-radius: 50%;
+            background: rgba(216, 191, 216, 0.2);
+            transition: all 0.4s var(--ease-antigravity);
+            cursor: pointer;
+        }
+        .carousel-dot.active {
+            background: var(--accent);
+            width: 24px;
+            border-radius: 4px;
+        }
+
+        /* ── Features ── */
+        .features {
+            padding: 6rem 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+            background: radial-gradient(ellipse at 50% 0%, rgba(var(--glow-rgb), 0.15) 0%, transparent 60%);
+        }
+        .features-header { text-align: center; margin-bottom: 4rem; }
+        .features-header h2 {
+            font-family: var(--font-serif);
+            font-size: 2.5rem; font-weight: 500; margin-bottom: 1rem;
+        }
+        .features-header p { color: var(--muted); font-size: 1.05rem; max-width: 500px; margin: 0 auto; }
+
+        .feature-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.5rem; }
+        .feature-card {
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px; padding: 2.2rem;
+            transition: all 0.5s var(--ease-antigravity);
+        }
+        .feature-card:hover {
+            background: rgba(var(--glow-rgb), 0.2);
+            border-color: rgba(216, 191, 216, 0.15);
+            transform: translateY(-4px);
+        }
+        .feature-icon {
+            width: 48px; height: 48px; border-radius: 14px;
+            background: rgba(var(--glow-rgb), 0.4);
+            display: flex; align-items: center; justify-content: center;
+            margin-bottom: 1.2rem;
+        }
+        .feature-icon svg { width: 22px; height: 22px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+        .feature-card h3 { font-family: var(--font-serif); font-size: 1.15rem; font-weight: 500; margin-bottom: 0.6rem; }
+        .feature-card p { color: var(--muted); font-size: 0.9rem; line-height: 1.6; }
+
+        /* ── How It Works ── */
+        .how-it-works { padding: 6rem 2rem; max-width: 800px; margin: 0 auto; }
+        .how-it-works h2 {
+            font-family: var(--font-serif); font-size: 2.5rem;
+            font-weight: 500; text-align: center; margin-bottom: 3.5rem;
+        }
+        .steps { display: flex; flex-direction: column; gap: 1.5rem; }
+        .step {
+            display: flex; align-items: flex-start; gap: 1.5rem;
+            padding: 1.8rem; background: var(--card-bg);
+            border: 1px solid var(--card-border); border-radius: 20px;
+            transition: all 0.5s var(--ease-antigravity);
+        }
+        .step:hover { background: rgba(var(--glow-rgb), 0.18); border-color: rgba(216, 191, 216, 0.12); }
+        .step-num {
+            width: 44px; height: 44px; min-width: 44px; border-radius: 14px;
+            background: rgba(var(--glow-rgb), 0.5);
+            border: 1px solid rgba(216, 191, 216, 0.12);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--font-serif); font-size: 1.1rem; font-weight: 600; color: var(--accent);
+        }
+        .step h3 { font-family: var(--font-serif); font-size: 1.1rem; font-weight: 500; margin-bottom: 0.35rem; }
+        .step p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+
+        /* ── Footer ── */
+        footer {
+            text-align: center; padding: 3rem 2rem;
+            border-top: 1px solid rgba(216, 191, 216, 0.06);
+        }
+        footer .footer-brand { font-family: var(--font-serif); font-size: 1.1rem; margin-bottom: 0.5rem; color: var(--accent); }
+        footer p { color: var(--muted); font-size: 0.8rem; }
+
+        /* ── Animations ── */
+        @keyframes fadeUp { to { opacity: 1; transform: translateY(0); } }
+
+        /* ── Responsive ── */
+        @media (max-width: 900px) {
+            .feature-grid { grid-template-columns: 1fr; }
+            .carousel-card { width: 240px; height: 360px; }
+            .carousel-card img { height: 270px; }
+            .carousel-card[data-pos="0"] { transform: translateX(-480px) translateZ(-180px) rotateY(25deg); }
+            .carousel-card[data-pos="1"] { transform: translateX(-250px) translateZ(-80px) rotateY(15deg); }
+            .carousel-card[data-pos="2"] { transform: translateX(0) translateZ(40px) rotateY(0deg); }
+            .carousel-card[data-pos="3"] { transform: translateX(250px) translateZ(-80px) rotateY(-15deg); }
+            .carousel-card[data-pos="4"] { transform: translateX(480px) translateZ(-180px) rotateY(-25deg); }
+        }
         @media (max-width: 600px) {
-            h1 { font-size: 2.2rem; }
-            .subtitle { font-size: 1rem; }
+            .nav { padding: 1rem 1.5rem; }
+            .nav-links a:not(.nav-cta) { display: none; }
+            .hero h1 { font-size: 2.8rem; }
+            .hero-subtitle { font-size: 1rem; }
+            .carousel-viewport { height: 420px; }
+            .carousel-card { width: 200px; height: 300px; }
+            .carousel-card img { height: 220px; }
+            .carousel-card[data-pos="0"] { transform: translateX(-360px) translateZ(-150px) rotateY(25deg); opacity: 0; }
+            .carousel-card[data-pos="1"] { transform: translateX(-200px) translateZ(-60px) rotateY(12deg); }
+            .carousel-card[data-pos="2"] { transform: translateX(0) translateZ(30px) rotateY(0deg); }
+            .carousel-card[data-pos="3"] { transform: translateX(200px) translateZ(-60px) rotateY(-12deg); }
+            .carousel-card[data-pos="4"] { transform: translateX(360px) translateZ(-150px) rotateY(-25deg); opacity: 0; }
         }
     </style>
 </head>
 <body>
+
+    <nav class="nav" id="mainNav">
+        <a href="/" class="nav-logo">Try-N-Thing</a>
+        <div class="nav-links">
+            <a href="#categories">Categories</a>
+            <a href="#how">How It Works</a>
+            <a href="/seller" class="nav-cta">Seller Dashboard</a>
+        </div>
+    </nav>
+
+    <!-- ── Hero ── -->
     <section class="hero">
         <div class="hero-content">
-            <span class="badge">AI-Powered Virtual Try-On</span>
-            <h1>See It On You<br>Before You Buy</h1>
-            <p class="subtitle">
-                Let your customers try on garments virtually. Upload your product, 
-                share a QR code, and watch conversions soar — powered by AI.
+            <span class="hero-badge">AI-Powered Virtual Fitting</span>
+            <h1>Try anything.<br><em>Be everything.</em></h1>
+            <p class="hero-subtitle">
+                Experience the future of fashion. Upload, generate, and see yourself 
+                in the extraordinary with Try-N-Thing's AI-driven virtual fitting room.
             </p>
-            <div class="cta-group">
-                <a href="/seller" class="btn btn-primary">Seller Dashboard</a>
-                <a href="#how" class="btn btn-secondary">How It Works</a>
-            </div>
+            <a href="/seller" class="hero-cta">
+                Experience the Fit
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+            </a>
         </div>
     </section>
-    
-    <section class="features">
-        <h2>Why TryOnAI?</h2>
+
+    <!-- ═══ 3D Carousel — Product Categories ═══ -->
+    <section class="carousel-section" id="categories">
+        <div class="carousel-header">
+            <h2>What You Can Try On</h2>
+            <p>Five categories, infinite possibilities</p>
+        </div>
+
+        <div class="carousel-viewport">
+            <div class="carousel-track" id="carouselTrack">
+                <div class="carousel-card" data-pos="0" onclick="goTo(0)">
+                    <img src="/static/images/cat_upper.png" alt="Upper Body">
+                    <div class="carousel-card-label">
+                        <h3>Upper Body</h3>
+                        <p>Shirts &bull; Kurtis &bull; Tops</p>
+                    </div>
+                </div>
+                <div class="carousel-card" data-pos="1" onclick="goTo(1)">
+                    <img src="/static/images/cat_lower.png" alt="Lower Body">
+                    <div class="carousel-card-label">
+                        <h3>Lower Body</h3>
+                        <p>Pants &bull; Skirts &bull; Palazzos</p>
+                    </div>
+                </div>
+                <div class="carousel-card" data-pos="2" onclick="goTo(2)">
+                    <img src="/static/images/cat_saree.png" alt="Sarees">
+                    <div class="carousel-card-label">
+                        <h3>Full Body</h3>
+                        <p>Sarees &bull; Dresses &bull; Gowns</p>
+                    </div>
+                </div>
+                <div class="carousel-card" data-pos="3" onclick="goTo(3)">
+                    <img src="/static/images/cat_earrings.png" alt="Earrings">
+                    <div class="carousel-card-label">
+                        <h3>Earrings</h3>
+                        <p>Drops &bull; Studs &bull; Jhumkas</p>
+                    </div>
+                </div>
+                <div class="carousel-card" data-pos="4" onclick="goTo(4)">
+                    <img src="/static/images/cat_necklace.png" alt="Necklace">
+                    <div class="carousel-card-label">
+                        <h3>Necklaces</h3>
+                        <p>Chokers &bull; Pendants &bull; Sets</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="carousel-controls">
+            <button class="carousel-btn" onclick="prev()" aria-label="Previous">
+                <svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg>
+            </button>
+            <div class="carousel-dots" id="carouselDots">
+                <div class="carousel-dot" onclick="goTo(0)"></div>
+                <div class="carousel-dot" onclick="goTo(1)"></div>
+                <div class="carousel-dot active" onclick="goTo(2)"></div>
+                <div class="carousel-dot" onclick="goTo(3)"></div>
+                <div class="carousel-dot" onclick="goTo(4)"></div>
+            </div>
+            <button class="carousel-btn" onclick="next()" aria-label="Next">
+                <svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg>
+            </button>
+        </div>
+    </section>
+
+    <!-- ── Features ── -->
+    <section class="features" id="features">
+        <div class="features-header">
+            <h2>Why Try-N-Thing?</h2>
+            <p>A seamless bridge between imagination and reality</p>
+        </div>
         <div class="feature-grid">
             <div class="feature-card">
-                <div class="feature-icon">📸</div>
-                <h3>One Photo, One Click</h3>
-                <p>Customers upload a selfie, AI generates a realistic try-on in seconds. No AR camera needed.</p>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="M21 15l-5-5L5 21"/></svg>
+                </div>
+                <h3>One Photo, Infinite Looks</h3>
+                <p>Customers upload a single photo. AI generates a photorealistic try-on in seconds — no mirror needed.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">🔐</div>
-                <h3>Privacy First</h3>
-                <p>Customer photos are processed in-memory and immediately discarded. Zero personal data stored.</p>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                </div>
+                <h3>Privacy-First Design</h3>
+                <p>Customer photos are processed in-memory and immediately discarded. Zero personal data stored, ever.</p>
             </div>
             <div class="feature-card">
-                <div class="feature-icon">📱</div>
-                <h3>QR Code Sharing</h3>
-                <p>Generate a unique QR code for each garment. Share on WhatsApp, Instagram — anywhere.</p>
+                <div class="feature-icon">
+                    <svg viewBox="0 0 24 24"><rect x="2" y="2" width="20" height="20" rx="2"/><path d="M7 7h3v3H7zM14 7h3v3h-3zM7 14h3v3H7zM14 14h3v3h-3z"/></svg>
+                </div>
+                <h3>Instant QR Sharing</h3>
+                <p>Generate a branded QR code for every garment. Share on WhatsApp, Instagram, print — anywhere your customers are.</p>
             </div>
         </div>
     </section>
-    
+
+    <!-- ── How It Works ── -->
     <section class="how-it-works" id="how">
         <h2>How It Works</h2>
         <div class="steps">
             <div class="step">
-                <div class="step-number">1</div>
+                <div class="step-num">1</div>
                 <div>
-                    <h3>Seller Uploads Garment</h3>
-                    <p>Upload your product photo from the seller dashboard. Flat-lay or on-model — both work.</p>
+                    <h3>Upload Your Garment</h3>
+                    <p>Drag and drop your product image into the seller dashboard. Flat-lay, on-model, or catalogue — all work beautifully.</p>
                 </div>
             </div>
             <div class="step">
-                <div class="step-number">2</div>
+                <div class="step-num">2</div>
                 <div>
-                    <h3>Get QR Code & Link</h3>
-                    <p>Each garment gets a unique try-on link and QR code. Share it anywhere.</p>
+                    <h3>Share the Experience</h3>
+                    <p>Get a branded QR code and unique try-on link. Print it on tags, share in stories, embed anywhere.</p>
                 </div>
             </div>
             <div class="step">
-                <div class="step-number">3</div>
+                <div class="step-num">3</div>
                 <div>
-                    <h3>Customer Tries On</h3>
-                    <p>Customer scans the QR, uploads their photo, and sees the garment on themselves in ~7 seconds.</p>
+                    <h3>Your Customer Tries On</h3>
+                    <p>They scan, upload their photo, and see the garment on themselves — in under 30 seconds. Pure magic.</p>
                 </div>
             </div>
         </div>
     </section>
-    
+
     <footer>
-        <p>TryOnAI &mdash; AI Virtual Try-On Platform &bull; Powered by CatVTON</p>
+        <div class="footer-brand">Try-N-Thing</div>
+        <p>AI Virtual Fitting Room &bull; Powered by Intelligence</p>
     </footer>
+
+    <script>
+        // ── Scroll-triggered nav ──
+        const nav = document.getElementById('mainNav');
+        window.addEventListener('scroll', () => nav.classList.toggle('scrolled', window.scrollY > 60));
+
+        // ═══ 3D Carousel Logic ═══
+        const cards = document.querySelectorAll('.carousel-card');
+        const dots = document.querySelectorAll('.carousel-dot');
+        const totalCards = cards.length;
+        let currentCenter = 2; // Start with saree (index 2) in center
+
+        function updateCarousel(centerIndex) {
+            currentCenter = centerIndex;
+            cards.forEach((card, i) => {
+                // Calculate position relative to center
+                // We want: center card = pos 2, left = 1/0, right = 3/4
+                let pos = i - centerIndex + 2;
+                // Wrap-around not needed for 5 cards
+                if (pos < 0) pos = 0;
+                if (pos > 4) pos = 4;
+                card.setAttribute('data-pos', pos);
+            });
+            // Update dots
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === centerIndex);
+            });
+        }
+
+        function next() {
+            const nextIdx = Math.min(currentCenter + 1, totalCards - 1);
+            updateCarousel(nextIdx);
+        }
+
+        function prev() {
+            const prevIdx = Math.max(currentCenter - 1, 0);
+            updateCarousel(prevIdx);
+        }
+
+        function goTo(index) {
+            updateCarousel(index);
+        }
+
+        // Touch/swipe support
+        let touchStartX = 0;
+        const viewport = document.querySelector('.carousel-viewport');
+        viewport.addEventListener('touchstart', e => { touchStartX = e.touches[0].clientX; });
+        viewport.addEventListener('touchend', e => {
+            const diff = touchStartX - e.changedTouches[0].clientX;
+            if (Math.abs(diff) > 50) {
+                diff > 0 ? next() : prev();
+            }
+        });
+
+        // Mouse wheel horizontal scroll
+        viewport.addEventListener('wheel', e => {
+            if (Math.abs(e.deltaX) > Math.abs(e.deltaY)) {
+                e.preventDefault();
+                e.deltaX > 0 ? next() : prev();
+            }
+        }, { passive: false });
+
+        // Auto-rotate every 4 seconds
+        let autoInterval = setInterval(() => {
+            const nextIdx = currentCenter >= totalCards - 1 ? 0 : currentCenter + 1;
+            updateCarousel(nextIdx);
+        }, 4000);
+
+        // Pause auto-rotate on hover
+        viewport.addEventListener('mouseenter', () => clearInterval(autoInterval));
+        viewport.addEventListener('mouseleave', () => {
+            autoInterval = setInterval(() => {
+                const nextIdx = currentCenter >= totalCards - 1 ? 0 : currentCenter + 1;
+                updateCarousel(nextIdx);
+            }, 4000);
+        });
+
+        // Initialize
+        updateCarousel(2);
+    </script>
 </body>
 </html>

@@ -3,41 +3,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Try On — {{ garment.name }} | TryOnAI</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <title>Try On — {{ garment.name }} | Try-N-Thing</title>
+    <meta name="description" content="Virtual try-on for {{ garment.name }}. See it on you before you buy.">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --base: #0A0310;
+            --glow: #3B1C5B;
+            --glow-rgb: 59, 28, 91;
+            --accent: #D8BFD8;
+            --white: #FFFFFF;
+            --muted: rgba(216, 191, 216, 0.5);
+            --card-bg: rgba(59, 28, 91, 0.12);
+            --card-border: rgba(216, 191, 216, 0.08);
+            --ease-antigravity: cubic-bezier(0.22, 1, 0.36, 1);
+            --font-serif: 'Playfair Display', Georgia, serif;
+            --font-sans: 'Inter', -apple-system, sans-serif;
+        }
+
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
-            font-family: 'Inter', sans-serif;
-            background: #0a0a0f;
-            color: #e8e8ed;
+            font-family: var(--font-sans);
+            background: var(--base);
+            color: var(--white);
             min-height: 100vh;
         }
 
+        /* ── Nav ── */
         nav {
-            padding: 1rem 2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
+            padding: 1.2rem 2rem;
+            border-bottom: 1px solid rgba(216, 191, 216, 0.06);
             text-align: center;
+            backdrop-filter: blur(20px);
+            background: rgba(10, 3, 16, 0.7);
         }
-        nav a { color: #a5b4fc; text-decoration: none; font-weight: 600; font-size: 1.1rem; }
+        nav a {
+            font-family: var(--font-serif);
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.2rem;
+        }
 
+        /* ── Container ── */
         .container {
-            max-width: 900px;
+            max-width: 920px;
             margin: 0 auto;
-            padding: 2rem;
+            padding: 2.5rem 2rem;
         }
 
+        /* ── Header ── */
         .tryon-header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 2.5rem;
         }
         .tryon-header h1 {
-            font-size: 1.6rem;
+            font-family: var(--font-serif);
+            font-size: 2rem;
+            font-weight: 500;
             margin-bottom: 0.5rem;
-            color: #e8e8ed;
+        }
+        .tryon-header h1 em {
+            font-style: italic;
+            color: var(--accent);
         }
         .tryon-header p {
-            color: #9ca3af;
+            color: var(--muted);
             font-size: 0.95rem;
         }
 
@@ -45,41 +76,47 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 6px 14px;
-            background: rgba(16,185,129,0.1);
-            border: 1px solid rgba(16,185,129,0.2);
+            padding: 7px 16px;
+            background: rgba(var(--glow-rgb), 0.25);
+            border: 1px solid rgba(216, 191, 216, 0.1);
             border-radius: 100px;
-            color: #6ee7b7;
-            font-size: 0.8rem;
+            color: var(--accent);
+            font-size: 0.78rem;
             font-weight: 500;
-            margin-top: 1rem;
+            margin-top: 1.2rem;
+            letter-spacing: 0.03em;
         }
 
         /* ── Two Column ── */
         .tryon-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
-            gap: 2rem;
-            margin-bottom: 2rem;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
-
         @media (max-width: 700px) {
             .tryon-grid { grid-template-columns: 1fr; }
         }
 
         .panel {
-            background: rgba(255,255,255,0.03);
-            border: 1px solid rgba(255,255,255,0.06);
-            border-radius: 16px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 24px;
             overflow: hidden;
+            transition: all 0.4s var(--ease-antigravity);
+        }
+        .panel:hover {
+            border-color: rgba(216, 191, 216, 0.12);
         }
 
         .panel-header {
-            padding: 1rem 1.2rem;
-            border-bottom: 1px solid rgba(255,255,255,0.06);
-            font-weight: 600;
-            font-size: 0.9rem;
-            color: #9ca3af;
+            padding: 1rem 1.4rem;
+            border-bottom: 1px solid rgba(216, 191, 216, 0.06);
+            font-weight: 500;
+            font-size: 0.85rem;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
         }
 
         .panel-body {
@@ -87,161 +124,234 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            min-height: 300px;
+            min-height: 320px;
+            justify-content: center;
         }
 
         .garment-preview {
             width: 100%;
-            max-height: 350px;
+            max-height: 360px;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 12px;
         }
 
         /* ── Upload Area ── */
         .upload-area {
             width: 100%;
-            min-height: 250px;
+            min-height: 280px;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            border: 2px dashed rgba(99,102,241,0.3);
-            border-radius: 12px;
+            border: 1px dashed rgba(216, 191, 216, 0.15);
+            border-radius: 16px;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.4s var(--ease-antigravity);
             text-align: center;
-            padding: 1.5rem;
+            padding: 2rem;
         }
         .upload-area:hover, .upload-area.dragover {
-            border-color: #6366f1;
-            background: rgba(99,102,241,0.05);
+            border-color: rgba(216, 191, 216, 0.35);
+            background: rgba(var(--glow-rgb), 0.1);
         }
 
-        .upload-area .icon { font-size: 2.5rem; margin-bottom: 0.5rem; }
-        .upload-area p { color: #9ca3af; font-size: 0.9rem; }
+        .upload-area .upload-icon-wrap {
+            width: 56px;
+            height: 56px;
+            border-radius: 16px;
+            background: rgba(var(--glow-rgb), 0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+        }
+        .upload-area svg { width: 24px; height: 24px; stroke: var(--accent); fill: none; stroke-width: 1.5; }
+        .upload-area p { color: var(--muted); font-size: 0.9rem; line-height: 1.5; }
+        .upload-area small { font-size: 0.78rem; color: rgba(216, 191, 216, 0.35); }
 
         .person-preview {
             width: 100%;
-            max-height: 350px;
+            max-height: 360px;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 12px;
             display: none;
         }
 
         input[type="file"] { display: none; }
 
-        /* ── Generate Button ── */
+        /* ── CTA Button ── */
         .generate-btn {
             width: 100%;
-            padding: 16px;
-            border-radius: 14px;
-            background: linear-gradient(135deg, #6366f1, #8b5cf6);
-            color: white;
-            font-size: 1.1rem;
+            padding: 18px;
+            border-radius: 100px;
+            background: var(--white);
+            color: var(--base);
+            font-size: 1.05rem;
             font-weight: 700;
             border: none;
             cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 1rem;
+            transition: all 0.4s var(--ease-antigravity);
+            margin-bottom: 1.5rem;
+            letter-spacing: 0.02em;
         }
         .generate-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 30px rgba(99,102,241,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 40px rgba(216, 191, 216, 0.2);
         }
         .generate-btn:disabled {
-            opacity: 0.4;
+            opacity: 0.25;
             cursor: not-allowed;
+        }
+
+        /* ── Loading ── */
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 3rem 2rem;
+        }
+        .loading.visible { display: block; }
+
+        .pulse-loader {
+            width: 56px;
+            height: 56px;
+            border-radius: 50%;
+            background: rgba(var(--glow-rgb), 0.4);
+            margin: 0 auto 1.5rem;
+            animation: pulse 1.5s ease-in-out infinite;
+            position: relative;
+        }
+        .pulse-loader::after {
+            content: '';
+            position: absolute;
+            inset: -8px;
+            border-radius: 50%;
+            border: 1px solid rgba(216, 191, 216, 0.1);
+            animation: pulse-ring 1.5s ease-in-out infinite;
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 0.6; }
+            50% { transform: scale(1.1); opacity: 1; }
+        }
+        @keyframes pulse-ring {
+            0%, 100% { transform: scale(1); opacity: 0; }
+            50% { transform: scale(1.3); opacity: 0.4; }
+        }
+
+        .loading p {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 0.5rem;
+        }
+        .loading .timer {
+            color: var(--accent);
+            font-family: var(--font-serif);
+            font-weight: 500;
+            font-size: 1.4rem;
         }
 
         /* ── Result ── */
         .result-section {
             display: none;
             text-align: center;
+            padding: 1rem 0;
         }
         .result-section.visible { display: block; }
 
+        .result-section h2 {
+            font-family: var(--font-serif);
+            font-size: 1.8rem;
+            font-weight: 500;
+            margin-bottom: 1.5rem;
+        }
+        .result-section h2 em {
+            font-style: italic;
+            color: var(--accent);
+        }
+
+        .result-frame {
+            display: inline-block;
+            position: relative;
+            border-radius: 24px;
+            overflow: hidden;
+            border: 1px solid rgba(216, 191, 216, 0.12);
+            box-shadow: 0 16px 60px rgba(var(--glow-rgb), 0.25);
+            margin-bottom: 1.5rem;
+        }
         .result-image {
+            display: block;
             width: 100%;
-            max-width: 400px;
-            border-radius: 16px;
-            margin: 0 auto 1rem;
-            border: 2px solid rgba(99,102,241,0.3);
+            max-width: 420px;
+            border-radius: 24px;
         }
 
         .result-meta {
-            color: #6b7280;
-            font-size: 0.85rem;
-            margin-bottom: 1rem;
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-bottom: 1.2rem;
         }
 
         .download-btn {
-            padding: 10px 24px;
-            border-radius: 10px;
-            background: rgba(16,185,129,0.15);
-            color: #6ee7b7;
-            border: 1px solid rgba(16,185,129,0.2);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 28px;
+            border-radius: 100px;
+            background: var(--white);
+            color: var(--base);
+            border: none;
             font-weight: 600;
+            font-size: 0.9rem;
             cursor: pointer;
-            transition: all 0.3s;
             text-decoration: none;
+            transition: all 0.3s var(--ease-antigravity);
         }
-        .download-btn:hover { background: rgba(16,185,129,0.25); }
-
-        /* ── Loading ── */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 2rem;
+        .download-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(216, 191, 216, 0.15);
         }
-        .loading.visible { display: block; }
 
-        .spinner {
-            width: 48px; height: 48px;
-            border: 4px solid rgba(99,102,241,0.2);
-            border-top-color: #6366f1;
-            border-radius: 50%;
-            animation: spin 0.8s linear infinite;
-            margin: 0 auto 1rem;
-        }
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .loading p { color: #9ca3af; }
-        .loading .timer { color: #a5b4fc; font-weight: 600; font-size: 1.2rem; }
-
+        /* ── Footer ── */
         footer {
             text-align: center;
-            padding: 2rem;
-            color: #4b5563;
-            font-size: 0.8rem;
+            padding: 2.5rem 2rem;
+            border-top: 1px solid rgba(216, 191, 216, 0.04);
+            color: var(--muted);
+            font-size: 0.78rem;
         }
     </style>
 </head>
 <body>
-    <nav><a href="/">TryOnAI</a></nav>
+    <nav><a href="/">Try-N-Thing</a></nav>
 
     <div class="container">
         <div class="tryon-header">
-            <h1>Try On: {{ garment.name }}</h1>
-            <p>Upload your photo to see how this garment looks on you</p>
-            <div class="privacy-badge">🔒 Your photo is never stored — processed in-memory only</div>
+            <h1><em>Virtual Reveal:</em> {{ garment.name }}</h1>
+            <p>Upload your photo to see this look on you</p>
+            <div class="privacy-badge">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Your photo is never stored — processed in-memory only
+            </div>
         </div>
 
         <div class="tryon-grid">
-            <!-- Garment Panel -->
+            <!-- Garment -->
             <div class="panel">
-                <div class="panel-header">Garment</div>
+                <div class="panel-header">The Garment</div>
                 <div class="panel-body">
                     <img class="garment-preview" src="/api/garment/image/{{ garment_id }}" alt="{{ garment.name }}">
                 </div>
             </div>
 
-            <!-- Person Upload Panel -->
+            <!-- Person Upload -->
             <div class="panel">
                 <div class="panel-header">Your Photo</div>
                 <div class="panel-body">
                     <div class="upload-area" id="uploadArea" onclick="document.getElementById('photoInput').click()">
-                        <div class="icon">📷</div>
-                        <p>Tap to upload your photo<br><small>Front-facing, full/half body</small></p>
+                        <div class="upload-icon-wrap">
+                            <svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                        </div>
+                        <p>Tap to upload your photo</p>
+                        <small>Front-facing, full or half body</small>
                     </div>
                     <img class="person-preview" id="personPreview" alt="Your photo">
                     <input type="file" id="photoInput" accept="image/*" capture="user">
@@ -250,26 +360,31 @@
         </div>
 
         <button class="generate-btn" id="generateBtn" disabled onclick="generate()">
-            ✨ Generate Try-On
+            ✦ Virtual Reveal
         </button>
 
         <!-- Loading -->
         <div class="loading" id="loading">
-            <div class="spinner"></div>
-            <p>AI is dressing you up...</p>
+            <div class="pulse-loader"></div>
+            <p>Creating your look...</p>
             <div class="timer" id="timer">0.0s</div>
         </div>
 
         <!-- Result -->
         <div class="result-section" id="resultSection">
-            <h2 style="margin-bottom: 1rem;">Your Try-On Result</h2>
-            <img class="result-image" id="resultImage" alt="Try-on result">
+            <h2>Your <em>Look</em></h2>
+            <div class="result-frame">
+                <img class="result-image" id="resultImage" alt="Try-on result">
+            </div>
             <div class="result-meta" id="resultMeta"></div>
-            <a class="download-btn" id="downloadBtn" download="tryon_result.png">⬇ Download Result</a>
+            <a class="download-btn" id="downloadBtn" download="trynthing_result.png">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Download Your Look
+            </a>
         </div>
     </div>
 
-    <footer>TryOnAI — Your photo is processed in-memory and never saved to our servers.</footer>
+    <footer>Try-N-Thing — Your photo is processed in-memory and never saved.</footer>
 
     <script>
         const photoInput = document.getElementById('photoInput');
@@ -311,7 +426,7 @@
             if (!selectedFile) return;
 
             generateBtn.disabled = true;
-            generateBtn.textContent = 'Processing...';
+            generateBtn.textContent = 'Creating your look...';
             document.getElementById('loading').classList.add('visible');
             document.getElementById('resultSection').classList.remove('visible');
 
@@ -353,7 +468,7 @@
             clearInterval(timerInterval);
             document.getElementById('loading').classList.remove('visible');
             generateBtn.disabled = false;
-            generateBtn.textContent = '✨ Generate Try-On';
+            generateBtn.textContent = '✦ Virtual Reveal';
         }
     </script>
 </body>
