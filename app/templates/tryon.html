@@ -318,6 +318,57 @@
             color: var(--muted);
             font-size: 0.78rem;
         }
+
+        /* ── Mobile Responsive ── */
+        @media (max-width: 768px) {
+            nav { padding: 1rem 1.5rem; }
+            .container { padding: 1.5rem 1rem; }
+            .tryon-header h1 { font-size: 1.4rem; }
+            .tryon-header p { font-size: 0.85rem; }
+            .tryon-grid {
+                grid-template-columns: 1fr;
+                gap: 1rem;
+            }
+            .panel { border-radius: 18px; }
+            .panel-body { min-height: 240px; padding: 1rem; }
+            .garment-preview { max-height: 280px; }
+            .upload-area { min-height: 200px; padding: 1.5rem; }
+            .person-preview { max-height: 280px; }
+            .generate-btn {
+                padding: 16px;
+                font-size: 1rem;
+                border-radius: 16px;
+            }
+            .result-section h2 { font-size: 1.4rem; }
+            .result-frame { border-radius: 18px; }
+            .result-image { border-radius: 18px; max-width: 100%; }
+            .download-btn {
+                width: 100%;
+                justify-content: center;
+                padding: 14px 24px;
+            }
+            footer { padding: 1.5rem 1rem; }
+        }
+        @media (max-width: 480px) {
+            .container { padding: 1rem 0.75rem; }
+            .tryon-header h1 { font-size: 1.2rem; }
+            .privacy-badge { font-size: 0.7rem; padding: 5px 12px; }
+            .panel-header { padding: 0.8rem 1rem; font-size: 0.75rem; }
+            .panel-body { min-height: 180px; padding: 0.8rem; }
+            .garment-preview { max-height: 220px; }
+            .upload-area { min-height: 160px; }
+            .upload-area .upload-icon-wrap {
+                width: 44px; height: 44px; border-radius: 12px;
+            }
+            .upload-area p { font-size: 0.82rem; }
+            .generate-btn { 
+                padding: 14px; 
+                font-size: 0.95rem;
+                border-radius: 14px;
+            }
+            .result-section h2 { font-size: 1.2rem; }
+            .loading .timer { font-size: 1.2rem; }
+        }
     </style>
 </head>
 <body>
